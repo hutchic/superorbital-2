@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import fire
 import swagger_client
 from swagger_client.rest import ApiException
@@ -32,8 +33,18 @@ class DroneCLI:
         :param filename: filename containing json payload for creating drone
         :returns: drone created
         """
-        with open(filename, "r") as f:
-            payload = json.load(f)
+        logger = logging.getLogger(__name__)
+        try:
+            with open(filename, "r") as f:
+                if not f:
+                    raise Exception(f"Error: File {filename} is empty")
+                payload = json.load(f)
+        except FileNotFoundError:
+            logger.error(f"Error: File {filename} not found")
+            return None
+        except json.decoder.JSONDecodeError as e:
+            logger.error(f"Error: Invalid JSON file - {e}")
+            return None
 
         """
         Assuming the default instruction index is 0. This should be handled by the API.
@@ -46,8 +57,9 @@ class DroneCLI:
             api_instance = swagger_client.DroneApi(self.api_client)
             api_response = api_instance.create_drone(drone)
             return pprint(api_response)
-        except ApiException as e:
-            return print("Exception when calling DroneApi->create_drone: %s\n" % e)
+        except swagger_client.rest.ApiException as e:
+            logger.error(f"Exception when calling DroneApi->create_drone: {e}")
+            raise
 
     def list(self):
         """
@@ -63,4 +75,6 @@ class DroneCLI:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+
     fire.Fire(DroneCLI())
