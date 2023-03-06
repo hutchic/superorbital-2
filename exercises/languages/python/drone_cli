@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ -n "${DEBUG:-}" ]; then
+    set -x
+fi
+
+DOCKER_IMAGE_NAME="drone-cli"
+MAKEFILE="Makefile"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+INPUT_DIR="$SCRIPT_DIR/input"
+
+
+# Check if Docker image exists
+if [[ "$(docker images -q $DOCKER_IMAGE_NAME 2> /dev/null)" == "" ]]; then
+    # Build Docker image using Makefile
+    make -f $MAKEFILE build
+fi
+
+# Run Docker container with user arguments
+docker run -it --rm --network=host -v "$INPUT_DIR":/input $DOCKER_IMAGE_NAME "python" "drone_cli.py" "$@"
