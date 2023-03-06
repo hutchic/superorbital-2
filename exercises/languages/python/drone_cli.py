@@ -4,7 +4,7 @@ import swagger_client
 from swagger_client.rest import ApiException
 from pprint import pprint
 from urllib3.util.retry import Retry
-from requests.adapters import HTTPAdapter
+import json
 
 
 class DroneCLI:
@@ -32,7 +32,22 @@ class DroneCLI:
         :param filename: filename containing json payload for creating drone
         :returns: drone created
         """
-        pass
+        with open(filename, "r") as f:
+            payload = json.load(f)
+
+        """
+        Assuming the default instruction index is 0. This should be handled by the API.
+        """
+        payload["instruction_index"] = 0
+
+        drone = swagger_client.ModelsDrone(**payload)
+
+        try:
+            api_instance = swagger_client.DroneApi(self.api_client)
+            api_response = api_instance.create_drone(drone)
+            return pprint(api_response)
+        except ApiException as e:
+            return print("Exception when calling DroneApi->create_drone: %s\n" % e)
 
     def list(self):
         """
@@ -44,7 +59,7 @@ class DroneCLI:
             api_response = api_instance.list_drones()
             return pprint(api_response)
         except ApiException as e:
-            print("Exception when calling DroneApi->list_drones: %s\n" % e)
+            return print("Exception when calling DroneApi->list_drones: %s\n" % e)
 
 
 if __name__ == "__main__":
