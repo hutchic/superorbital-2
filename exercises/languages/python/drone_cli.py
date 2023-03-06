@@ -41,10 +41,10 @@ class DroneCLI:
                 payload = json.load(f)
         except FileNotFoundError:
             logger.error(f"Error: File {filename} not found")
-            return None
+            raise
         except json.decoder.JSONDecodeError as e:
             logger.error(f"Error: Invalid JSON file - {e}")
-            return None
+            raise
 
         """
         Assuming the default instruction index is 0. This should be handled by the API.
